@@ -166,6 +166,7 @@
             this.btnMain.TabIndex = 18;
             this.btnMain.Text = "Encrypt/Decrypt";
             this.btnMain.UseVisualStyleBackColor = true;
+            this.btnMain.Click += new System.EventHandler(this.BtnMain_Click);
             // 
             // label3
             // 
