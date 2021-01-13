@@ -1,4 +1,6 @@
-﻿using System;
+﻿using FileCastle.service;
+using FileCastle.constants;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -13,11 +15,8 @@ namespace FileCastle
 {
     public partial class frmMain : Form
     {
-        enum Actions
-        {
-            Encrypt,
-            Decrypt
-        }
+        FileCastleService fileCastleService;
+        
         public frmMain()
         {
             InitializeComponent();
@@ -48,70 +47,28 @@ namespace FileCastle
         }
         #endregion
 
-        private Actions VerifyAllFiles()
-        {
-            int encryptedFilesCount = 0;
-            int filesCount;
-            if (lbMain.SelectedItems.Count > 0)
-            {
-                filesCount = lbMain.SelectedItems.Count;
-                foreach (string fileName in lbMain.SelectedItems)
-                {
-                    VerifyCurrentFile(fileName, ref encryptedFilesCount);
-                }
-            }
-            else
-            {
-                filesCount = lbMain.Items.Count;
-                foreach (string fileName in lbMain.Items)
-                {
-                    VerifyCurrentFile(fileName, ref encryptedFilesCount);
-                }
-            }
-            if ((encryptedFilesCount > 0) && (encryptedFilesCount == filesCount))
-            {
-                return Actions.Decrypt;
-            }
-            else if (encryptedFilesCount == 0)
-            {
-                return Actions.Encrypt;
-            }
-            else
-            {
-                throw new Exception("Invalid selection of files.");
-            }
-        }
-
-        private void VerifyCurrentFile(string _fileName, ref int _encryptedFilesCount)
-        {
-            if (Directory.Exists(_fileName))
-            {
-                DirectoryInfo dir = new DirectoryInfo(_fileName);
-                var files = dir.GetFiles();
-                foreach (FileInfo file in files)
-                {
-                    VerifyCurrentFile(file.FullName, ref _encryptedFilesCount);
-                }
-            }
-            else
-            {
-                if(new FileInfo(_fileName).Extension == ".castle")
-                {
-                    _encryptedFilesCount ++;
-                }
-            }
-        }
-
         private void BtnMain_Click(object sender, EventArgs e)
         {
+            fileCastleService = new FileCastleService();
             if (lbMain.Items.Count > 0)
             {
                 try
                 {
-                    switch(VerifyAllFiles())
+                    List<string> filesToConsider = new List<string>();
+                    if (lbMain.SelectedItems.Count > 0)
                     {
-                        case Actions.Decrypt: MessageBox.Show("Decryption"); break;
-                        case Actions.Encrypt: MessageBox.Show("Encryption"); break;
+                        filesToConsider = lbMain.SelectedItems.Cast<string>().ToList();
+                    }
+                    else
+                    {
+                        filesToConsider = lbMain.Items.Cast<string>().ToList();
+                    }
+                    switch (fileCastleService.VerifyAllFiles(filesToConsider))
+                    {
+                        case Enums.Actions.Encrypt: //do stuff 
+                            break;
+                        case Enums.Actions.Decrypt: //do stuff 
+                            break;
                     }
                 }
                 catch (Exception ex)
