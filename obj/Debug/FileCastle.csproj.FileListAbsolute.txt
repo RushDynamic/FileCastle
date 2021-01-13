@@ -1,0 +1,10 @@
+C:\Users\AfterHuman\Source\Repos\FileCastle\bin\Debug\FileCastle.exe.config
+C:\Users\AfterHuman\Source\Repos\FileCastle\bin\Debug\FileCastle.exe
+C:\Users\AfterHuman\Source\Repos\FileCastle\bin\Debug\FileCastle.pdb
+C:\Users\AfterHuman\Source\Repos\FileCastle\obj\Debug\FileCastle.csprojAssemblyReference.cache
+C:\Users\AfterHuman\Source\Repos\FileCastle\obj\Debug\FileCastle.frmMain.resources
+C:\Users\AfterHuman\Source\Repos\FileCastle\obj\Debug\FileCastle.Properties.Resources.resources
+C:\Users\AfterHuman\Source\Repos\FileCastle\obj\Debug\FileCastle.csproj.GenerateResource.cache
+C:\Users\AfterHuman\Source\Repos\FileCastle\obj\Debug\FileCastle.csproj.CoreCompileInputs.cache
+C:\Users\AfterHuman\Source\Repos\FileCastle\obj\Debug\FileCastle.exe
+C:\Users\AfterHuman\Source\Repos\FileCastle\obj\Debug\FileCastle.pdb
