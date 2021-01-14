@@ -56,24 +56,44 @@ namespace FileCastle.service
         #endregion
 
         #region "Encryption/Decryption"
-        public void EncryptFiles(IProgress<int> _progress, List<string> _filesToEncrypt, string key)
+        public void ProcessFiles(IProgress<int> _progress, List<string> _filesToProcess, string _key, Enums.Actions _ACTION)
         {
-            //TODO: count of filesToEncrypt to calculate progress
+            //TODO: fix progressbar not getting updated
             int filesCount = 0, percent;
-            foreach(string fileName in _filesToEncrypt)
+            foreach(string fileName in _filesToProcess)
             {
-                EncryptFile(fileName, key);
+                if (_ACTION == Enums.Actions.Encrypt)
+                    EncryptFile(fileName, _key);
+                else
+                    DecryptFile(fileName, _key);
                 filesCount++;
-                percent = (filesCount / _filesToEncrypt.Count) * 100;
+                percent = (filesCount / _filesToProcess.Count) * 100;
                 _progress.Report(percent);
             }
         }
 
-        public void DecryptFiles(IProgress<int> _progress)
+        private void DecryptFile(string fileName, string key)
         {
-            //_progress.Report(15);
+            //TODO: Add directory check
+            FileInfo curFile = new FileInfo(fileName);
+            if (fileName.Contains(".castle"))
+            {
+                int fileNameLength = 0;
+                byte[] encryptedBytes = File.ReadAllBytes(fileName);
+                byte[] decryptedBytes = AES.Decrypt(encryptedBytes, key);
+                for(int i = 0; i < decryptedBytes.Length && decryptedBytes[i] != ':'; i++)
+                {
+                    fileNameLength++;
+                }
+                byte[] fileNameBytes = new byte[fileNameLength];
+                byte[] fileContentBytes = new byte[decryptedBytes.Length - (fileNameLength + 1)];
+                System.Buffer.BlockCopy(decryptedBytes, 0, fileNameBytes, 0, fileNameLength);
+                System.Buffer.BlockCopy(decryptedBytes, fileNameLength + 1, fileContentBytes, 0, decryptedBytes.Length - (fileNameLength + 1));
+                string rawFileName = ASCIIEncoding.ASCII.GetString(fileNameBytes);
+                File.Delete(fileName);
+                File.WriteAllBytes(curFile.FullName.Replace(curFile.Name, rawFileName), fileContentBytes);
+            }
         }
-
         private void EncryptFile(string fileName, string key)
         {
             if (Directory.Exists(fileName))
@@ -83,14 +103,17 @@ namespace FileCastle.service
                 {
                     EncryptFile(file.FullName, key);
                 }
+                foreach(DirectoryInfo subDir in dir.GetDirectories())
+                {
+                    EncryptFile(subDir.FullName, key);
+                }
             }
             else
             {
-                //TODO: Extract only filename from path, replace filename with random string, delete original file
                 FileInfo curFile = new FileInfo(fileName);
-
                 byte[] fileContentBytes = File.ReadAllBytes(curFile.FullName);
                 byte[] fileNameBytes = ASCIIEncoding.ASCII.GetBytes(curFile.Name + ":");
+                //TODO: Replace .ToArray() with BlockCopy or ArrayCopy
                 byte[] bytesToEncrypt = fileNameBytes.Concat(fileContentBytes).ToArray();
                 File.Delete(curFile.FullName);
                 byte[] encryptedBytes = AES.Encrypt(bytesToEncrypt, key);

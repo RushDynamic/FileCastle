@@ -46,7 +46,7 @@ namespace FileCastle
             }
         }
         #endregion
-        private async void EncryptFiles(List<string> _filesToConsider, string key)
+        private async void ProcessFiles(List<string> _filesToConsider, string _key, Enums.Actions _ACTION)
         {
             progressBar.Visible = true;
             try
@@ -55,18 +55,17 @@ namespace FileCastle
                 {
                     progressBar.Value = percent;
                 });
-                await Task.Run(() => fileCastleService.EncryptFiles(progress, _filesToConsider, key));
+                await Task.Run(() => fileCastleService.ProcessFiles(progress, _filesToConsider, _key, _ACTION));
                 foreach(var file in _filesToConsider)
                 {
                     lbMain.Items.Remove(file);
                 }
-                MessageBox.Show("Encryption successful!");
+                MessageBox.Show("{0} successful!", _ACTION.ToString());
             }
             catch (Exception ex)
             {
                 MessageBox.Show(String.Format("An error has occured: {0}", ex.Message), "Error");
             }
-
         }
 
         private void BtnMain_Click(object sender, EventArgs e)
@@ -85,11 +84,8 @@ namespace FileCastle
                     {
                         filesToConsider = lbMain.Items.Cast<string>().ToList();
                     }
-                    switch (fileCastleService.VerifyAllFiles(filesToConsider))
-                    {
-                        case Enums.Actions.Encrypt: EncryptFiles(filesToConsider, txtKey.Text); break;
-                        case Enums.Actions.Decrypt: break;
-                    }
+
+                    ProcessFiles(filesToConsider, txtKey.Text, fileCastleService.VerifyAllFiles(filesToConsider));
                 }
                 catch (Exception ex)
                 {
