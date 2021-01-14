@@ -47,12 +47,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="constants\Enums.cs" />
+    <Compile Include="constants\FileCastleConstants.cs" />
     <Compile Include="forms\frmMain.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="forms\frmMain.Designer.cs">
       <DependentUpon>frmMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="helper\FileCastleUtil.cs" />
     <Compile Include="service\AES.cs" />
     <Compile Include="service\FileCastleService.cs" />
     <Compile Include="service\Program.cs" />
