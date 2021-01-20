@@ -20,7 +20,7 @@ namespace FileCastle.service
                 VerifyCurrentFile(fileName, ref encryptedFilesCount);
             }
             
-            if ((encryptedFilesCount > 0) && (encryptedFilesCount == filesCount))
+            if ((encryptedFilesCount > 0) && (encryptedFilesCount >= filesCount))
             {
                 return Enums.Actions.Decrypt;
             }
@@ -38,6 +38,7 @@ namespace FileCastle.service
         {
             if (Directory.Exists(_fileName))
             {
+                _encryptedFilesCount++;
                 DirectoryInfo dir = new DirectoryInfo(_fileName);
                 var files = dir.GetFiles();
                 foreach (FileInfo file in files)
