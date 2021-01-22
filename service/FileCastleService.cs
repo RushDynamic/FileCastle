@@ -136,16 +136,16 @@ namespace FileCastle.service
                 FileInfo curFile = new FileInfo(fileName);
                 byte[] fileContentBytes = File.ReadAllBytes(curFile.FullName);
                 byte[] fileNameBytes = ASCIIEncoding.ASCII.GetBytes(curFile.Name + ":");
-                //TODO: Replace .ToArray() with BlockCopy or ArrayCopy
-                byte[] bytesToEncrypt = fileNameBytes.Concat(fileContentBytes).ToArray();
-                File.Delete(curFile.FullName);
+                byte[] bytesToEncrypt = new byte[fileNameBytes.Length + fileContentBytes.Length];
+                System.Buffer.BlockCopy(fileNameBytes, 0, bytesToEncrypt, 0, fileNameBytes.Length);
+                System.Buffer.BlockCopy(fileContentBytes, 0, bytesToEncrypt, fileNameBytes.Length, fileContentBytes.Length);
                 byte[] encryptedBytes = AES.Encrypt(bytesToEncrypt, key);
                 string encFileName;
                 do
                 {
                     encFileName = FileCastleUtil.GenerateRandomFileName();
                 } while (File.Exists(encFileName));
-               
+                File.Delete(curFile.FullName);
                 string fullPath = curFile.FullName.Replace(curFile.Name, encFileName);
                 File.WriteAllBytes(fullPath, encryptedBytes);
             }
