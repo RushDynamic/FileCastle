@@ -60,7 +60,6 @@ namespace FileCastle
                 {
                     lbMain.Items.Remove(file);
                 }
-                MessageBox.Show("{0} successful!", _ACTION.ToString());
             }
             catch (Exception ex)
             {

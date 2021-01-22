@@ -11,6 +11,14 @@ namespace FileCastle.service
 {
     class FileCastleService
     {
+        // TODO: Add exception handling
+        // TODO: Add more button functionality
+        // TODO: Replace messages with constants
+        // TODO: Cleanup filenames before writing to disk
+        // TODO: Use compression for portability
+        // TODO: Add comments for readability
+        // TODO: Use LINQ wherever possible
+
         #region "File Extension Verification"
         public Enums.Actions VerifyAllFiles(List<string> _filesToConsider)
         {
@@ -47,7 +55,7 @@ namespace FileCastle.service
             }
             else
             {
-                if (new FileInfo(_fileName).Extension == ".castle")
+                if (new FileInfo(_fileName).Extension == FileCastleConstants.ENCRYPTED_EXTENSION)
                 {
                     _encryptedFilesCount++;
                 }
@@ -58,7 +66,6 @@ namespace FileCastle.service
         #region "Encryption/Decryption"
         public void ProcessFiles(IProgress<int> _progress, List<string> _filesToProcess, string _key, Enums.Actions _ACTION)
         {
-            //TODO: fix progressbar not getting updated
             int filesCount = 0, percent;
             foreach(string fileName in _filesToProcess)
             {
@@ -71,10 +78,60 @@ namespace FileCastle.service
                 _progress.Report(percent);
             }
         }
+        
+        private void EncryptFile(string fileName, string key)
+        {
+            if (Directory.Exists(fileName))
+            {
+                DirectoryInfo dir = new DirectoryInfo(fileName);
+                foreach(FileInfo file in dir.GetFiles())
+                {
+                    EncryptFile(file.FullName, key);
+                }
+                // Encrypt each file within sub-directories recursively
+                foreach(DirectoryInfo subDir in dir.GetDirectories())
+                {
+                    EncryptFile(subDir.FullName, key);
+                }
+
+                // Generate a random directory that doesn't already exist
+                string newDirName;
+                do
+                {
+                    newDirName = FileCastleUtil.GenerateRandomFileName();
+                } while (Directory.Exists(newDirName));
+
+                // Write the original (encrypted) directory name into the fcMeta file
+                File.WriteAllText(Path.Combine(dir.FullName, FileCastleConstants.FC_META_INFO), 
+                    Convert.ToBase64String(AES.Encrypt(ASCIIEncoding.ASCII.GetBytes(fileName), key)));
+                dir.MoveTo(Path.Combine(dir.Parent.FullName, newDirName));
+            }
+            else
+            {
+                FileInfo curFile = new FileInfo(fileName);
+                byte[] fileContentBytes = File.ReadAllBytes(curFile.FullName);
+
+                // Append the bytes of the original filename with the bytes of the actual file content, separated by ":"
+                byte[] fileNameBytes = ASCIIEncoding.ASCII.GetBytes(curFile.Name + ":");
+                byte[] bytesToEncrypt = new byte[fileNameBytes.Length + fileContentBytes.Length];
+                System.Buffer.BlockCopy(fileNameBytes, 0, bytesToEncrypt, 0, fileNameBytes.Length);
+                System.Buffer.BlockCopy(fileContentBytes, 0, bytesToEncrypt, fileNameBytes.Length, fileContentBytes.Length);
+                byte[] encryptedBytes = AES.Encrypt(bytesToEncrypt, key);
+                string encFileName;
+                do
+                {
+                    encFileName = FileCastleUtil.GenerateRandomFileName();
+                } while (File.Exists(encFileName));
+                string fullPath = curFile.FullName.Replace(curFile.Name, encFileName);
+                File.WriteAllBytes(fullPath, encryptedBytes);
+
+                // Delete original file only after writing encrypted file to disk
+                File.Delete(curFile.FullName);
+            }
+        }
 
         private void DecryptFile(string fileName, string key)
         {
-            //TODO: Add directory check
             if (Directory.Exists(fileName))
             {
                 DirectoryInfo dir = new DirectoryInfo(fileName);
@@ -83,14 +140,19 @@ namespace FileCastle.service
                     DecryptFile(file.FullName, key);
                 }
 
-                if (File.Exists(Path.Combine(dir.FullName, ".fcMeta")))
+                /*
+                 * We take a top-down approach while decrypting the directory names.
+                 * Bottom-up approach won't work since the parent directory name would still be encrypted, and hence the path of the subdirectory would be invalid.
+                 */
+                if (File.Exists(Path.Combine(dir.FullName, FileCastleConstants.FC_META_INFO)))
                 {
-                    string encryptedDirName = File.ReadAllText(Path.Combine(dir.FullName, ".fcMeta"));
+                    string encryptedDirName = File.ReadAllText(Path.Combine(dir.FullName, FileCastleConstants.FC_META_INFO));
                     string rawDirName = ASCIIEncoding.ASCII.GetString(AES.Decrypt(Convert.FromBase64String(encryptedDirName), key));
                     dir.MoveTo(Path.Combine(dir.Parent.FullName, rawDirName));
-                    File.Delete(Path.Combine(dir.FullName, ".fcMeta"));
+                    File.Delete(Path.Combine(dir.FullName, FileCastleConstants.FC_META_INFO));
                 }
 
+                // Decrypt name of parent directory before going into subdirectories
                 foreach (DirectoryInfo subDir in dir.GetDirectories())
                 {
                     DecryptFile(subDir.FullName, key);
@@ -99,7 +161,7 @@ namespace FileCastle.service
             else
             {
                 FileInfo curFile = new FileInfo(fileName);
-                if (curFile.Extension == ".castle")
+                if (curFile.Extension == FileCastleConstants.ENCRYPTED_EXTENSION)
                 {
                     int fileNameLength = 0;
                     byte[] encryptedBytes = File.ReadAllBytes(fileName);
@@ -113,52 +175,11 @@ namespace FileCastle.service
                     System.Buffer.BlockCopy(decryptedBytes, 0, fileNameBytes, 0, fileNameLength);
                     System.Buffer.BlockCopy(decryptedBytes, fileNameLength + 1, fileContentBytes, 0, decryptedBytes.Length - (fileNameLength + 1));
                     string rawFileName = ASCIIEncoding.ASCII.GetString(fileNameBytes);
-                    File.Delete(fileName);
                     File.WriteAllBytes(curFile.FullName.Replace(curFile.Name, rawFileName), fileContentBytes);
-                }
-            }
-        }
-        private void EncryptFile(string fileName, string key)
-        {
-            if (Directory.Exists(fileName))
-            {
-                DirectoryInfo dir = new DirectoryInfo(fileName);
-                foreach(FileInfo file in dir.GetFiles())
-                {
-                    EncryptFile(file.FullName, key);
-                }
-                foreach(DirectoryInfo subDir in dir.GetDirectories())
-                {
-                    EncryptFile(subDir.FullName, key);
-                }
-                //TODO: Generate random directory names
 
-                string newDirName;
-                do
-                {
-                    newDirName = FileCastleUtil.GenerateRandomFileName();
-                } while (Directory.Exists(newDirName));
-                File.WriteAllText(Path.Combine(dir.FullName, ".fcMeta"), 
-                    Convert.ToBase64String(AES.Encrypt(ASCIIEncoding.ASCII.GetBytes(fileName), key)));
-                dir.MoveTo(Path.Combine(dir.Parent.FullName, newDirName));
-            }
-            else
-            {
-                FileInfo curFile = new FileInfo(fileName);
-                byte[] fileContentBytes = File.ReadAllBytes(curFile.FullName);
-                byte[] fileNameBytes = ASCIIEncoding.ASCII.GetBytes(curFile.Name + ":");
-                byte[] bytesToEncrypt = new byte[fileNameBytes.Length + fileContentBytes.Length];
-                System.Buffer.BlockCopy(fileNameBytes, 0, bytesToEncrypt, 0, fileNameBytes.Length);
-                System.Buffer.BlockCopy(fileContentBytes, 0, bytesToEncrypt, fileNameBytes.Length, fileContentBytes.Length);
-                byte[] encryptedBytes = AES.Encrypt(bytesToEncrypt, key);
-                string encFileName;
-                do
-                {
-                    encFileName = FileCastleUtil.GenerateRandomFileName();
-                } while (File.Exists(encFileName));
-                File.Delete(curFile.FullName);
-                string fullPath = curFile.FullName.Replace(curFile.Name, encFileName);
-                File.WriteAllBytes(fullPath, encryptedBytes);
+                    // Delete encrypted file after successful decryption
+                    File.Delete(fileName);
+                }
             }
         }
         #endregion

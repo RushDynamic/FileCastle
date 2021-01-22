@@ -9,5 +9,6 @@ namespace FileCastle.constants
     class FileCastleConstants
     {
         public const string ENCRYPTED_EXTENSION = ".castle";
+        public const string FC_META_INFO = ".fcMeta";
     }
 }
