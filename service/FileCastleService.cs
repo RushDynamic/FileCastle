@@ -38,7 +38,7 @@ namespace FileCastle.service
         {
             if (Directory.Exists(_fileName))
             {
-                _encryptedFilesCount++;
+                //_encryptedFilesCount++;
                 DirectoryInfo dir = new DirectoryInfo(_fileName);
                 var files = dir.GetFiles();
                 foreach (FileInfo file in files)
@@ -83,16 +83,24 @@ namespace FileCastle.service
                 {
                     DecryptFile(file.FullName, key);
                 }
+
+                if (File.Exists(Path.Combine(dir.FullName, ".fcMeta")))
+                {
+                    string encryptedDirName = File.ReadAllText(Path.Combine(dir.FullName, ".fcMeta"));
+                    string rawDirName = ASCIIEncoding.ASCII.GetString(AES.Decrypt(Convert.FromBase64String(encryptedDirName), key));
+                    dir.MoveTo(Path.Combine(dir.Parent.FullName, rawDirName));
+                    File.Delete(Path.Combine(dir.FullName, ".fcMeta"));
+                }
+
                 foreach (DirectoryInfo subDir in dir.GetDirectories())
                 {
                     DecryptFile(subDir.FullName, key);
                 }
-                string newDirName;
             }
             else
             {
                 FileInfo curFile = new FileInfo(fileName);
-                if (fileName.Contains(".castle"))
+                if (curFile.Extension == ".castle")
                 {
                     int fileNameLength = 0;
                     byte[] encryptedBytes = File.ReadAllBytes(fileName);
@@ -125,11 +133,17 @@ namespace FileCastle.service
                     EncryptFile(subDir.FullName, key);
                 }
                 //TODO: Generate random directory names
-                /*do
+
+                string newDirName;
+                do
                 {
                     newDirName = FileCastleUtil.GenerateRandomFileName();
                 } while (Directory.Exists(newDirName));
-                dir.MoveTo(Path.Combine(dir.Parent.FullName, newDirName));*/
+                //dir.MoveTo(Path.Combine(dir.Parent.FullName, newDirName));
+                //.FileCastleMeta
+                File.WriteAllText(Path.Combine(dir.FullName, ".fcMeta"), 
+                    Convert.ToBase64String(AES.Encrypt(ASCIIEncoding.ASCII.GetBytes(fileName), key)));
+                dir.MoveTo(Path.Combine(dir.Parent.FullName, newDirName));
             }
             else
             {
