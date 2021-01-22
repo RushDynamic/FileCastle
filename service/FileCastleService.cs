@@ -38,7 +38,6 @@ namespace FileCastle.service
         {
             if (Directory.Exists(_fileName))
             {
-                //_encryptedFilesCount++;
                 DirectoryInfo dir = new DirectoryInfo(_fileName);
                 var files = dir.GetFiles();
                 foreach (FileInfo file in files)
@@ -68,7 +67,7 @@ namespace FileCastle.service
                 else
                     DecryptFile(fileName, _key);
                 filesCount++;
-                percent = (filesCount / _filesToProcess.Count) * 100;
+                percent = (filesCount * 100) / _filesToProcess.Count;
                 _progress.Report(percent);
             }
         }
@@ -139,8 +138,6 @@ namespace FileCastle.service
                 {
                     newDirName = FileCastleUtil.GenerateRandomFileName();
                 } while (Directory.Exists(newDirName));
-                //dir.MoveTo(Path.Combine(dir.Parent.FullName, newDirName));
-                //.FileCastleMeta
                 File.WriteAllText(Path.Combine(dir.FullName, ".fcMeta"), 
                     Convert.ToBase64String(AES.Encrypt(ASCIIEncoding.ASCII.GetBytes(fileName), key)));
                 dir.MoveTo(Path.Combine(dir.Parent.FullName, newDirName));
