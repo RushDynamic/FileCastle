@@ -3,7 +3,7 @@ Simple AES encryption/decryption utility for files and folders
 
 ## Screenshots
 
-### Main form
+### Main form:
 ![main screen](https://user-images.githubusercontent.com/77390780/107493063-09b80300-6b42-11eb-9dea-6cb275b4e373.png)
 
 ### Encrypted output:
