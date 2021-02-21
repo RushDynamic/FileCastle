@@ -30,15 +30,6 @@
         {
             this.components = new System.ComponentModel.Container();
             this.notifyInfo = new System.Windows.Forms.NotifyIcon(this.components);
-            this.allToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.selectedToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.decryptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.allToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.selectedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.encryptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.allToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
-            this.selectedToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
-            this.removeItemToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuMain = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.btnPassword = new System.Windows.Forms.Button();
             this.progressBar = new System.Windows.Forms.ProgressBar();
@@ -48,6 +39,8 @@
             this.label1 = new System.Windows.Forms.Label();
             this.txtKey = new System.Windows.Forms.TextBox();
             this.lbMain = new System.Windows.Forms.ListBox();
+            this.removeSelectedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.removeAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuMain.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -56,77 +49,13 @@
             this.notifyInfo.Text = "notifyIcon1";
             this.notifyInfo.Visible = true;
             // 
-            // allToolStripMenuItem1
-            // 
-            this.allToolStripMenuItem1.Name = "allToolStripMenuItem1";
-            this.allToolStripMenuItem1.Size = new System.Drawing.Size(118, 22);
-            this.allToolStripMenuItem1.Text = "All";
-            // 
-            // selectedToolStripMenuItem1
-            // 
-            this.selectedToolStripMenuItem1.Name = "selectedToolStripMenuItem1";
-            this.selectedToolStripMenuItem1.Size = new System.Drawing.Size(118, 22);
-            this.selectedToolStripMenuItem1.Text = "Selected";
-            // 
-            // decryptToolStripMenuItem
-            // 
-            this.decryptToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.selectedToolStripMenuItem1,
-            this.allToolStripMenuItem1});
-            this.decryptToolStripMenuItem.Name = "decryptToolStripMenuItem";
-            this.decryptToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
-            this.decryptToolStripMenuItem.Text = "Decrypt";
-            // 
-            // allToolStripMenuItem
-            // 
-            this.allToolStripMenuItem.Name = "allToolStripMenuItem";
-            this.allToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
-            this.allToolStripMenuItem.Text = "All";
-            // 
-            // selectedToolStripMenuItem
-            // 
-            this.selectedToolStripMenuItem.Name = "selectedToolStripMenuItem";
-            this.selectedToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
-            this.selectedToolStripMenuItem.Text = "Selected";
-            // 
-            // encryptToolStripMenuItem
-            // 
-            this.encryptToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.selectedToolStripMenuItem,
-            this.allToolStripMenuItem});
-            this.encryptToolStripMenuItem.Name = "encryptToolStripMenuItem";
-            this.encryptToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
-            this.encryptToolStripMenuItem.Text = "Encrypt";
-            // 
-            // allToolStripMenuItem2
-            // 
-            this.allToolStripMenuItem2.Name = "allToolStripMenuItem2";
-            this.allToolStripMenuItem2.Size = new System.Drawing.Size(118, 22);
-            this.allToolStripMenuItem2.Text = "All";
-            // 
-            // selectedToolStripMenuItem2
-            // 
-            this.selectedToolStripMenuItem2.Name = "selectedToolStripMenuItem2";
-            this.selectedToolStripMenuItem2.Size = new System.Drawing.Size(118, 22);
-            this.selectedToolStripMenuItem2.Text = "Selected";
-            // 
-            // removeItemToolStripMenuItem
-            // 
-            this.removeItemToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.selectedToolStripMenuItem2,
-            this.allToolStripMenuItem2});
-            this.removeItemToolStripMenuItem.Name = "removeItemToolStripMenuItem";
-            this.removeItemToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
-            this.removeItemToolStripMenuItem.Text = "Remove";
-            // 
             // menuMain
             // 
             this.menuMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.removeItemToolStripMenuItem,
-            this.encryptToolStripMenuItem,
-            this.decryptToolStripMenuItem});
+            this.removeSelectedToolStripMenuItem,
+            this.removeAllToolStripMenuItem});
             this.menuMain.Name = "menuMain";
-            this.menuMain.Size = new System.Drawing.Size(118, 70);
+            this.menuMain.Size = new System.Drawing.Size(181, 70);
             // 
             // btnPassword
             // 
@@ -142,6 +71,7 @@
             this.btnPassword.Text = "*";
             this.btnPassword.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.btnPassword.UseVisualStyleBackColor = true;
+            this.btnPassword.Click += new System.EventHandler(this.btnPassword_Click);
             // 
             // progressBar
             // 
@@ -224,6 +154,20 @@
             this.lbMain.Size = new System.Drawing.Size(560, 202);
             this.lbMain.TabIndex = 22;
             // 
+            // removeSelectedToolStripMenuItem
+            // 
+            this.removeSelectedToolStripMenuItem.Name = "removeSelectedToolStripMenuItem";
+            this.removeSelectedToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.removeSelectedToolStripMenuItem.Text = "Remove Selected";
+            this.removeSelectedToolStripMenuItem.Click += new System.EventHandler(this.removeSelectedToolStripMenuItem_Click);
+            // 
+            // removeAllToolStripMenuItem
+            // 
+            this.removeAllToolStripMenuItem.Name = "removeAllToolStripMenuItem";
+            this.removeAllToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.removeAllToolStripMenuItem.Text = "Remove All";
+            this.removeAllToolStripMenuItem.Click += new System.EventHandler(this.removeAllToolStripMenuItem_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -254,15 +198,6 @@
         #endregion
 
         private System.Windows.Forms.NotifyIcon notifyInfo;
-        private System.Windows.Forms.ToolStripMenuItem allToolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem selectedToolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem decryptToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem allToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem selectedToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem encryptToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem allToolStripMenuItem2;
-        private System.Windows.Forms.ToolStripMenuItem selectedToolStripMenuItem2;
-        private System.Windows.Forms.ToolStripMenuItem removeItemToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip menuMain;
         private System.Windows.Forms.Button btnPassword;
         private System.Windows.Forms.ProgressBar progressBar;
@@ -272,6 +207,8 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtKey;
         private System.Windows.Forms.ListBox lbMain;
+        private System.Windows.Forms.ToolStripMenuItem removeSelectedToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem removeAllToolStripMenuItem;
     }
 }
 

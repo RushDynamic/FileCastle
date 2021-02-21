@@ -46,7 +46,7 @@ namespace FileCastle
             }
         }
         #endregion
-        private async void ProcessFiles(List<string> _filesToConsider, string _key, Enums.Actions _ACTION)
+        private async void ProcessFiles(List<string> _filesToConsider, string _key, Tuple<Enums.Actions, long> _actionInfo)
         {
             progressBar.Visible = true;
             try
@@ -55,8 +55,8 @@ namespace FileCastle
                 {
                     progressBar.Value = percent;
                 });
-                await Task.Run(() => fileCastleService.ProcessFiles(progress, _filesToConsider, _key, _ACTION));
-                foreach(var file in _filesToConsider)
+                await Task.Run(() => fileCastleService.ProcessFiles(progress, _filesToConsider, _key, _actionInfo));
+                foreach (var file in _filesToConsider)
                 {
                     lbMain.Items.Remove(file);
                 }
@@ -67,6 +67,7 @@ namespace FileCastle
             }
         }
 
+        #region "UI Components"
         private void BtnMain_Click(object sender, EventArgs e)
         {
             fileCastleService = new FileCastleService();
@@ -96,5 +97,27 @@ namespace FileCastle
                 MessageBox.Show("Please add some files/directories first.");
             }
         }
+
+        private void btnPassword_Click(object sender, EventArgs e)
+        {
+            txtKey.UseSystemPasswordChar = !txtKey.UseSystemPasswordChar;
+        }
+
+        private void removeSelectedToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            while (lbMain.SelectedItems.Count > 0)
+            {
+                lbMain.Items.Remove(lbMain.SelectedItems[0]);
+            }
+        }
+
+        private void removeAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (DialogResult.OK == MessageBox.Show("Remove all imported files?", "FileCastle", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation))
+            {
+                lbMain.Items.Clear();
+            }
+        }
+        #endregion
     }
 }
