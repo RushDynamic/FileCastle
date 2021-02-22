@@ -14,11 +14,10 @@ namespace FileCastle.service
     {
         // TODO: Major code cleanup
         // TODO: Testing edge-cases of filename logic
+        // TODO: Run benchmarks with different buffer sizes
         // TODO: Add exception handling
         // TODO: Add more button functionality
-        // TODO: Improved progress bar
         // TODO: Replace messages with constants
-        // TODO: Cleanup filenames before writing to disk
         // TODO: Use compression for portability
         // TODO: Add comments for readability
         // TODO: Use LINQ wherever possible
@@ -74,7 +73,6 @@ namespace FileCastle.service
         #region "Encryption/Decryption"
         public void ProcessFiles(IProgress<int> _progress, List<string> _filesToProcess, string _key, Tuple<Enums.Actions, long> _actionInfo)
         {
-            //int filesCount = 0, percent;
             long totalFileBytes = _actionInfo.Item2, totalProcessedBytes = 0;
             foreach (string fileName in _filesToProcess)
             {
@@ -82,10 +80,10 @@ namespace FileCastle.service
                     EncryptFile(fileName, _key, totalFileBytes, ref totalProcessedBytes, ref _progress);
                 else
                     DecryptFile(fileName, _key, totalFileBytes, ref totalProcessedBytes, ref _progress);
-/*                filesCount++;
-                percent = (filesCount * 100) / _filesToProcess.Count;
-                _progress.Report(percent);*/
             }
+
+            // After all the files have been processed, reset the progressbar value to 0.
+            // Update status text etc here
             _progress.Report(0);
         }
         
@@ -123,14 +121,20 @@ namespace FileCastle.service
                 byte[] rawBuffer = new byte[FileCastleConstants.BUFFER_SIZE_STANDARD];
                 
                 byte[] fileNameBytes = ASCIIEncoding.ASCII.GetBytes(curFile.Name);
-                //Encrypt fileNameBytes[]
                 byte[] encryptedFileNameBytes = AES.Encrypt(fileNameBytes, _key);
+                /* encryptedFileNameLengthBytes is used for storing the length of the AES encrypted file name
+                 * Maximum file path length for windows is 260 characters. i.e: the length can be safely stored using 3 bytes
+                 */
                 byte[] encryptedFileNameLengthBytes = new byte[3];
-                //encryptedFileNameLengthBytes = ASCIIEncoding.ASCII.GetBytes(encryptedFileNameBytes.Length.ToString());
+                // Store the length in a buffer and copy it to encryptedFileNameLengthBytes so that the right-padding will remain
                 byte[] fileNameLengthBuffer = ASCIIEncoding.ASCII.GetBytes(encryptedFileNameBytes.Length.ToString());
                 System.Buffer.BlockCopy(fileNameLengthBuffer, 0, encryptedFileNameLengthBytes, 0, fileNameLengthBuffer.Length);
+
+                // Append encryptedFileNameLengthBytes to the beginning of the actual encryptedFileNameBytes
                 encryptedFileNameBytes = encryptedFileNameLengthBytes.Concat(encryptedFileNameBytes).ToArray();
                 System.Buffer.BlockCopy(encryptedFileNameBytes, 0, rawBuffer, 0, encryptedFileNameBytes.Length);
+
+                // Generate a random Windows-safe file name that doesn't exist at that path
                 string encFileName;
                 do
                 {
@@ -142,22 +146,20 @@ namespace FileCastle.service
                 FileStream fsRead = new FileStream(curFile.FullName, FileMode.Open, FileAccess.Read);
                 BufferedStream bsRead = new BufferedStream(fsRead, FileCastleConstants.BUFFER_SIZE_STANDARD);
 
+                // Write the fileName info to disk
                 fsWrite.Write(rawBuffer, 0, rawBuffer.Length);
                 Array.Clear(rawBuffer, 0, rawBuffer.Length);
-                //int currentWriteFilePos = (int) encryptedFileNameBytes.Length;
+
                 long totalBytesRead = 0;
                 while (totalBytesRead < curFile.Length)
                 {
                     int bytesRead = bsRead.Read(rawBuffer, 0, rawBuffer.Length);
-                    if (bytesRead <= 0)
-                    {
-                        MessageBox.Show("bytesRead = " + bytesRead + "\n TotalBytesRead: " + totalBytesRead + "\n TotalFileSize: " + curFile.Length);
-                        totalBytesRead = curFile.Length;
-                        break;
-                    }
                     totalBytesRead += bytesRead;
+
+                    // bytesRead will be less than rawBuffer.Length for the last chunk, we need to handle that separately as follows
                     if (bytesRead != rawBuffer.Length)
                     {
+                        // Need to update rawBuffer's size to bytesRead so we don't write empty bytes onto disk
                         byte[] swap = rawBuffer;
                         rawBuffer = new byte[bytesRead];
                         System.Buffer.BlockCopy(swap, 0, rawBuffer, 0, bytesRead);
@@ -168,41 +170,18 @@ namespace FileCastle.service
                         byte[] encryptedBytes = AES.Encrypt(rawBuffer, _key);
                         fsWrite.Write(encryptedBytes, 0, encryptedBytes.Length);
                     }
-                    //currentWriteFilePos += encryptedBytes.Length;
+
+                    // Updating the progressbar
                     totalProcessedBytes += bytesRead;
                     int progressPercent = (int)((totalProcessedBytes * 100) / _totalFileBytes);
-                    if (progressPercent < 0)
-                    {
-                        MessageBox.Show("Negative progress percent!");
-                    }
                     _progress.Report(progressPercent);
+
+                    // Clear rawBuffer
                     Array.Clear(rawBuffer, 0, rawBuffer.Length);
                 }
 
                 //MessageBox.Show("Encryption done");
                 fsWrite.Close(); fsRead.Close(); bsRead.Close();
-                //System.Buffer.BlockCopy(fileNameBytes, 0, rawBuffer, 0, fileNameBytes.Length);
-                //long remainingFileSize = curFile.Length;
-/*                while (remainingFileSize > 0)
-                {
-    
-                }*/
-
-                /*byte[] fileContentBytes = File.ReadAllBytes(curFile.FullName);
-
-                // Append the bytes of the original filename with the bytes of the actual file content, separated by ":"
-                byte[] fileNameBytes = ASCIIEncoding.ASCII.GetBytes(curFile.Name + ":");
-                byte[] bytesToEncrypt = new byte[fileNameBytes.Length + fileContentBytes.Length];
-                System.Buffer.BlockCopy(fileNameBytes, 0, bytesToEncrypt, 0, fileNameBytes.Length);
-                System.Buffer.BlockCopy(fileContentBytes, 0, bytesToEncrypt, fileNameBytes.Length, fileContentBytes.Length);
-                byte[] encryptedBytes = AES.Encrypt(bytesToEncrypt, key);
-                string encFileName;
-                do
-                {
-                    encFileName = FileCastleUtil.GenerateRandomFileName();
-                } while (File.Exists(encFileName));
-                string fullPath = curFile.FullName.Replace(curFile.Name, encFileName);
-                File.WriteAllBytes(fullPath, encryptedBytes);*/
 
                 // Delete original file only after writing encrypted file to disk
                 File.Delete(curFile.FullName);
@@ -247,41 +226,36 @@ namespace FileCastle.service
                     BufferedStream bsRead = new BufferedStream(fsRead);
                     bsRead.Read(encBuffer, 0, FileCastleConstants.BUFFER_SIZE_STANDARD);
                     byte[] fileNameLengthBytes = new byte[3];
-                    System.Buffer.BlockCopy(encBuffer, 0, fileNameLengthBytes, 0, 3);
-                    //string fileNameLengthStr = Encoding.ASCII.GetString(fileNameLengthBytes);
-                    int fileNameLength = Convert.ToInt32(Encoding.ASCII.GetString(fileNameLengthBytes));
-/*                    for (int i = 0; i < encBuffer.Length && encBuffer[i] != ':'; i++)
-                    {
-                        fileNameLength++;
-                    }*/
 
+                    // Copy the first 3 bytes of encBuffer to fileNameLengthBytes
+                    System.Buffer.BlockCopy(encBuffer, 0, fileNameLengthBytes, 0, 3);
+                    int fileNameLength = Convert.ToInt32(Encoding.ASCII.GetString(fileNameLengthBytes));
+
+                    // Create byte array of size fileNameLength to hold the encrypted fileName bytes
                     byte[] encryptedFileNameBytes = new byte[fileNameLength];
+
+                    // Start copying from position {3} to skip the filename length
                     System.Buffer.BlockCopy(encBuffer, 3, encryptedFileNameBytes, 0, fileNameLength);
                     byte[] decryptedFileNameBytes = AES.Decrypt(encryptedFileNameBytes, key);
                     string rawFileName = ASCIIEncoding.ASCII.GetString(decryptedFileNameBytes);
-                    //byte[] remainingFileNameBytesBuffer = new byte[encBuffer.Length - fileNameLength + 1];
-                    //System.Buffer.BlockCopy(encBuffer, fileNameLength + 1, remainingFileNameBytesBuffer, 0, remainingFileNameBytesBuffer.Length);
                     FileStream fsWrite = new FileStream(curFile.FullName.Replace(curFile.Name, rawFileName), FileMode.Append, FileAccess.Write);
-                    //int len = encBuffer.Length - (fileNameLength + 1);
+
+                    // Initialize totalBytesWritten as BUFFER_SIZE_STANDARD (8192) to account for the first chunk (fileName chunk)
                     long totalBytesWritten = FileCastleConstants.BUFFER_SIZE_STANDARD;
-                    Array.Clear(encBuffer, 0, encBuffer.Length);
+
+                    // Encryption result gets padded with 16 more bytes (8192 + 16)
                     encBuffer = new byte[FileCastleConstants.BUFFER_SIZE_PADDED];
                     while (totalBytesWritten < curFile.Length)
                     {
                         int bytesRead = bsRead.Read(encBuffer, 0, encBuffer.Length);
-                        if (bytesRead <= 0)
-                        {
-                            MessageBox.Show("bytesRead = " + bytesRead + "\n TotalBytesRead: " + totalBytesWritten + "\n TotalFileSize: " + curFile.Length);
-                            totalBytesWritten = curFile.Length;
-                            break;
-                        }
                         totalBytesWritten += bytesRead;
+
+                        // For the last chunk
                         if (bytesRead != encBuffer.Length)
                         {
                             byte[] swap = encBuffer;
                             encBuffer = new byte[bytesRead];
                             System.Buffer.BlockCopy(swap, 0, encBuffer, 0, bytesRead);
-                            //MessageBox.Show("Reached here!");
                         }
                         if (encBuffer.Length > 0)
                         {
@@ -293,6 +267,7 @@ namespace FileCastle.service
                             MessageBox.Show("encBuffer < 0\nbytesRead = " + bytesRead + "\n TotalBytesRead: " + totalBytesWritten + "\n TotalFileSize: " + curFile.Length);
                         }
 
+                        // Updating the progressbar
                         totalProcessedBytes += bytesRead;
                         int progressPercent = (int)((totalProcessedBytes * 100) / _totalFileBytes);
                         if (progressPercent < 0)
@@ -300,24 +275,11 @@ namespace FileCastle.service
                             MessageBox.Show("Negative progress percent!");
                         }
                         _progress.Report(progressPercent);
-                        //currentWriteFilePos += encryptedBytes.Length;
+
                         Array.Clear(encBuffer, 0, encBuffer.Length);
                     }
                     //MessageBox.Show("Finished writing.");
                     fsWrite.Close(); bsRead.Close(); fsRead.Close();
-                    /*int fileNameLength = 0;
-                    byte[] encryptedBytes = File.ReadAllBytes(fileName);
-                    byte[] decryptedBytes = AES.Decrypt(encryptedBytes, key);
-                    for (int i = 0; i < decryptedBytes.Length && decryptedBytes[i] != ':'; i++)
-                    {
-                        fileNameLength++;
-                    }
-                    byte[] fileNameBytes = new byte[fileNameLength];
-                    byte[] fileContentBytes = new byte[decryptedBytes.Length - (fileNameLength + 1)];
-                    System.Buffer.BlockCopy(decryptedBytes, 0, fileNameBytes, 0, fileNameLength);
-                    System.Buffer.BlockCopy(decryptedBytes, fileNameLength + 1, fileContentBytes, 0, decryptedBytes.Length - (fileNameLength + 1));
-                    string rawFileName = ASCIIEncoding.ASCII.GetString(fileNameBytes);
-                    File.WriteAllBytes(curFile.FullName.Replace(curFile.Name, rawFileName), fileContentBytes);*/
 
                     // Delete encrypted file after successful decryption
                     File.Delete(fileName);
