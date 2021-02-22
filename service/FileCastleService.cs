@@ -12,6 +12,8 @@ namespace FileCastle.service
 {
     class FileCastleService
     {
+        // TODO: Major code cleanup
+        // TODO: Testing edge-cases of filename logic
         // TODO: Add exception handling
         // TODO: Add more button functionality
         // TODO: Improved progress bar
@@ -119,10 +121,15 @@ namespace FileCastle.service
                 FileInfo curFile = new FileInfo(_fileName);
 
                 byte[] rawBuffer = new byte[FileCastleConstants.BUFFER_SIZE_STANDARD];
+                
                 byte[] fileNameBytes = ASCIIEncoding.ASCII.GetBytes(curFile.Name);
                 //Encrypt fileNameBytes[]
                 byte[] encryptedFileNameBytes = AES.Encrypt(fileNameBytes, _key);
-                encryptedFileNameBytes = encryptedFileNameBytes.Concat(ASCIIEncoding.ASCII.GetBytes(":")).ToArray();
+                byte[] encryptedFileNameLengthBytes = new byte[3];
+                //encryptedFileNameLengthBytes = ASCIIEncoding.ASCII.GetBytes(encryptedFileNameBytes.Length.ToString());
+                byte[] fileNameLengthBuffer = ASCIIEncoding.ASCII.GetBytes(encryptedFileNameBytes.Length.ToString());
+                System.Buffer.BlockCopy(fileNameLengthBuffer, 0, encryptedFileNameLengthBytes, 0, fileNameLengthBuffer.Length);
+                encryptedFileNameBytes = encryptedFileNameLengthBytes.Concat(encryptedFileNameBytes).ToArray();
                 System.Buffer.BlockCopy(encryptedFileNameBytes, 0, rawBuffer, 0, encryptedFileNameBytes.Length);
                 string encFileName;
                 do
@@ -239,14 +246,17 @@ namespace FileCastle.service
                     FileStream fsRead = new FileStream(fileName, FileMode.Open);
                     BufferedStream bsRead = new BufferedStream(fsRead);
                     bsRead.Read(encBuffer, 0, FileCastleConstants.BUFFER_SIZE_STANDARD);
-                    int fileNameLength = 0;
-                    for (int i = 0; i < encBuffer.Length && encBuffer[i] != ':'; i++)
+                    byte[] fileNameLengthBytes = new byte[3];
+                    System.Buffer.BlockCopy(encBuffer, 0, fileNameLengthBytes, 0, 3);
+                    //string fileNameLengthStr = Encoding.ASCII.GetString(fileNameLengthBytes);
+                    int fileNameLength = Convert.ToInt32(Encoding.ASCII.GetString(fileNameLengthBytes));
+/*                    for (int i = 0; i < encBuffer.Length && encBuffer[i] != ':'; i++)
                     {
                         fileNameLength++;
-                    }
+                    }*/
 
                     byte[] encryptedFileNameBytes = new byte[fileNameLength];
-                    System.Buffer.BlockCopy(encBuffer, 0, encryptedFileNameBytes, 0, fileNameLength);
+                    System.Buffer.BlockCopy(encBuffer, 3, encryptedFileNameBytes, 0, fileNameLength);
                     byte[] decryptedFileNameBytes = AES.Decrypt(encryptedFileNameBytes, key);
                     string rawFileName = ASCIIEncoding.ASCII.GetString(decryptedFileNameBytes);
                     //byte[] remainingFileNameBytesBuffer = new byte[encBuffer.Length - fileNameLength + 1];
