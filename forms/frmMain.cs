@@ -16,7 +16,7 @@ namespace FileCastle
     public partial class frmMain : Form
     {
         FileCastleService fileCastleService;
-        
+
         public frmMain()
         {
             InitializeComponent();
@@ -40,7 +40,8 @@ namespace FileCastle
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             foreach (string file in files)
             {
-                if (!lbMain.Items.Contains(file)) {
+                if (!lbMain.Items.Contains(file))
+                {
                     lbMain.Items.Add(file);
                 }
             }
@@ -65,11 +66,16 @@ namespace FileCastle
             {
                 MessageBox.Show(String.Format("An error has occured: {0}", ex.Message), "Error");
             }
+            finally
+            {
+                btnMain.Enabled = true;
+            }
         }
 
         #region "UI Components"
         private void BtnMain_Click(object sender, EventArgs e)
         {
+            btnMain.Enabled = false;
             fileCastleService = new FileCastleService();
             if (lbMain.Items.Count > 0)
             {

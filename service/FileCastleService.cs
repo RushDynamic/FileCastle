@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static FileCastle.constants.FileCastleConstants;
 
 namespace FileCastle.service
 {
@@ -32,7 +33,7 @@ namespace FileCastle.service
             {
                 VerifyCurrentFile(fileName, ref encryptedFilesCount, ref totalFileBytes);
             }
-            
+
             if ((encryptedFilesCount > 0) && (encryptedFilesCount >= filesCount))
             {
                 //return Enums.Actions.Decrypt;
@@ -61,7 +62,7 @@ namespace FileCastle.service
             }
             else
             {
-                if (new FileInfo(_fileName).Extension == FileCastleConstants.ENCRYPTED_EXTENSION)
+                if (new FileInfo(_fileName).Extension == ENCRYPTED_EXTENSION)
                 {
                     _encryptedFilesCount++;
                 }
@@ -80,13 +81,14 @@ namespace FileCastle.service
                     EncryptFile(fileName, _key, totalFileBytes, ref totalProcessedBytes, ref _progress);
                 else
                     DecryptFile(fileName, _key, totalFileBytes, ref totalProcessedBytes, ref _progress);
+
             }
 
             // After all the files have been processed, reset the progressbar value to 0.
             // Update status text etc here
             _progress.Report(0);
         }
-        
+
         private void EncryptFile(string _fileName, string _key, long _totalFileBytes, ref long totalProcessedBytes, ref IProgress<int> _progress)
         {
             if (Directory.Exists(_fileName))
@@ -110,7 +112,7 @@ namespace FileCastle.service
                 } while (Directory.Exists(newDirName));
 
                 // Write the original (encrypted) directory name into the fcMeta file
-                File.WriteAllText(Path.Combine(dir.FullName, FileCastleConstants.FC_META_INFO), 
+                File.WriteAllText(Path.Combine(dir.FullName, FC_META_INFO),
                     Convert.ToBase64String(AES.Encrypt(ASCIIEncoding.ASCII.GetBytes(_fileName), _key)));
                 dir.MoveTo(Path.Combine(dir.Parent.FullName, newDirName));
             }
@@ -118,14 +120,16 @@ namespace FileCastle.service
             {
                 FileInfo curFile = new FileInfo(_fileName);
 
-                byte[] rawBuffer = new byte[FileCastleConstants.BUFFER_SIZE_STANDARD];
-                
+                byte[] rawBuffer = new byte[BUFFER_SIZE_STANDARD];
                 byte[] fileNameBytes = ASCIIEncoding.ASCII.GetBytes(curFile.Name);
                 byte[] encryptedFileNameBytes = AES.Encrypt(fileNameBytes, _key);
-                /* encryptedFileNameLengthBytes is used for storing the length of the AES encrypted file name
-                 * Maximum file path length for windows is 260 characters. i.e: the length can be safely stored using 3 bytes
+
+                /* 
+                 * encryptedFileNameLengthBytes is used for storing the length of the AES encrypted file name
+                 * Maximum file path length for windows is 260 characters. i.e: the length can be safely stored using 3 (FILE_NAME_LENGTH_CHUNK_SIZE) bytes
                  */
-                byte[] encryptedFileNameLengthBytes = new byte[3];
+                byte[] encryptedFileNameLengthBytes = new byte[FILE_NAME_LENGTH_CHUNK_SIZE];
+
                 // Store the length in a buffer and copy it to encryptedFileNameLengthBytes so that the right-padding will remain
                 byte[] fileNameLengthBuffer = ASCIIEncoding.ASCII.GetBytes(encryptedFileNameBytes.Length.ToString());
                 System.Buffer.BlockCopy(fileNameLengthBuffer, 0, encryptedFileNameLengthBytes, 0, fileNameLengthBuffer.Length);
@@ -144,7 +148,7 @@ namespace FileCastle.service
 
                 FileStream fsWrite = new FileStream(fullPath, FileMode.Append, FileAccess.Write);
                 FileStream fsRead = new FileStream(curFile.FullName, FileMode.Open, FileAccess.Read);
-                BufferedStream bsRead = new BufferedStream(fsRead, FileCastleConstants.BUFFER_SIZE_STANDARD);
+                BufferedStream bsRead = new BufferedStream(fsRead, BUFFER_SIZE_STANDARD);
 
                 // Write the fileName info to disk
                 fsWrite.Write(rawBuffer, 0, rawBuffer.Length);
@@ -163,7 +167,6 @@ namespace FileCastle.service
                         byte[] swap = rawBuffer;
                         rawBuffer = new byte[bytesRead];
                         System.Buffer.BlockCopy(swap, 0, rawBuffer, 0, bytesRead);
-                        //MessageBox.Show("Reached inside block! \n TotalBytesRead: " + totalBytesRead + "\n TotalFileSize: " + curFile.Length);
                     }
                     if (rawBuffer.Length > 0)
                     {
@@ -181,6 +184,7 @@ namespace FileCastle.service
                 }
 
                 //MessageBox.Show("Encryption done");
+                
                 fsWrite.Close(); fsRead.Close(); bsRead.Close();
 
                 // Delete original file only after writing encrypted file to disk
@@ -202,12 +206,12 @@ namespace FileCastle.service
                  * We take a top-down approach while decrypting the directory names.
                  * Bottom-up approach won't work since the parent directory name would still be encrypted, and hence the path of the subdirectory would be invalid.
                  */
-                if (File.Exists(Path.Combine(dir.FullName, FileCastleConstants.FC_META_INFO)))
+                if (File.Exists(Path.Combine(dir.FullName, FC_META_INFO)))
                 {
-                    string encryptedDirName = File.ReadAllText(Path.Combine(dir.FullName, FileCastleConstants.FC_META_INFO));
+                    string encryptedDirName = File.ReadAllText(Path.Combine(dir.FullName, FC_META_INFO));
                     string rawDirName = ASCIIEncoding.ASCII.GetString(AES.Decrypt(Convert.FromBase64String(encryptedDirName), key));
                     dir.MoveTo(Path.Combine(dir.Parent.FullName, rawDirName));
-                    File.Delete(Path.Combine(dir.FullName, FileCastleConstants.FC_META_INFO));
+                    File.Delete(Path.Combine(dir.FullName, FC_META_INFO));
                 }
 
                 // Decrypt name of parent directory before going into subdirectories
@@ -219,32 +223,32 @@ namespace FileCastle.service
             else
             {
                 FileInfo curFile = new FileInfo(fileName);
-                if (curFile.Extension == FileCastleConstants.ENCRYPTED_EXTENSION)
+                if (curFile.Extension == ENCRYPTED_EXTENSION)
                 {
-                    byte[] encBuffer = new byte[FileCastleConstants.BUFFER_SIZE_STANDARD];
+                    byte[] encBuffer = new byte[BUFFER_SIZE_STANDARD];
                     FileStream fsRead = new FileStream(fileName, FileMode.Open);
                     BufferedStream bsRead = new BufferedStream(fsRead);
-                    bsRead.Read(encBuffer, 0, FileCastleConstants.BUFFER_SIZE_STANDARD);
-                    byte[] fileNameLengthBytes = new byte[3];
+                    bsRead.Read(encBuffer, 0, BUFFER_SIZE_STANDARD);
+                    byte[] fileNameLengthBytes = new byte[FILE_NAME_LENGTH_CHUNK_SIZE];
 
-                    // Copy the first 3 bytes of encBuffer to fileNameLengthBytes
-                    System.Buffer.BlockCopy(encBuffer, 0, fileNameLengthBytes, 0, 3);
+                    // Copy the first 3 (FILE_NAME_LENGTH_CHUNK_SIZE) bytes of encBuffer to fileNameLengthBytes
+                    System.Buffer.BlockCopy(encBuffer, 0, fileNameLengthBytes, 0, FILE_NAME_LENGTH_CHUNK_SIZE);
                     int fileNameLength = Convert.ToInt32(Encoding.ASCII.GetString(fileNameLengthBytes));
 
                     // Create byte array of size fileNameLength to hold the encrypted fileName bytes
                     byte[] encryptedFileNameBytes = new byte[fileNameLength];
 
                     // Start copying from position {3} to skip the filename length
-                    System.Buffer.BlockCopy(encBuffer, 3, encryptedFileNameBytes, 0, fileNameLength);
+                    System.Buffer.BlockCopy(encBuffer, FILE_NAME_LENGTH_CHUNK_SIZE, encryptedFileNameBytes, 0, fileNameLength);
                     byte[] decryptedFileNameBytes = AES.Decrypt(encryptedFileNameBytes, key);
                     string rawFileName = ASCIIEncoding.ASCII.GetString(decryptedFileNameBytes);
                     FileStream fsWrite = new FileStream(curFile.FullName.Replace(curFile.Name, rawFileName), FileMode.Append, FileAccess.Write);
 
                     // Initialize totalBytesWritten as BUFFER_SIZE_STANDARD (8192) to account for the first chunk (fileName chunk)
-                    long totalBytesWritten = FileCastleConstants.BUFFER_SIZE_STANDARD;
+                    long totalBytesWritten = BUFFER_SIZE_STANDARD;
 
                     // Encryption result gets padded with 16 more bytes (8192 + 16)
-                    encBuffer = new byte[FileCastleConstants.BUFFER_SIZE_PADDED];
+                    encBuffer = new byte[BUFFER_SIZE_PADDED];
                     while (totalBytesWritten < curFile.Length)
                     {
                         int bytesRead = bsRead.Read(encBuffer, 0, encBuffer.Length);
@@ -262,18 +266,10 @@ namespace FileCastle.service
                             byte[] decryptedBytes = AES.Decrypt(encBuffer, key);
                             fsWrite.Write(decryptedBytes, 0, decryptedBytes.Length);
                         }
-                        else
-                        {
-                            MessageBox.Show("encBuffer < 0\nbytesRead = " + bytesRead + "\n TotalBytesRead: " + totalBytesWritten + "\n TotalFileSize: " + curFile.Length);
-                        }
 
                         // Updating the progressbar
                         totalProcessedBytes += bytesRead;
                         int progressPercent = (int)((totalProcessedBytes * 100) / _totalFileBytes);
-                        if (progressPercent < 0)
-                        {
-                            MessageBox.Show("Negative progress percent!");
-                        }
                         _progress.Report(progressPercent);
 
                         Array.Clear(encBuffer, 0, encBuffer.Length);
