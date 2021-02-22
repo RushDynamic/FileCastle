@@ -1,13 +1,10 @@
 # FileCastle
-Simple AES encryption utility for files and folders
+Simple AES encryption/decryption utility for files and folders
 
-[Using this to keep track of action items for now, will update with actual info later]
+## Screenshots
 
-### TODO:
-- ~~Decryption logic for directories~~
-- ~~Fix progressbar not getting updated issue~~
-- ~~Figure out how to store actual directory names with jumbled directory names~~
-- ~~Generate random names for directories during encryption~~
-- ~~Replace .ToArray() with BlockCopy for encryption~~
-- Clean filenames before writing to disk
-- Use compression
+### Main form:
+![main screen](https://user-images.githubusercontent.com/77390780/107493063-09b80300-6b42-11eb-9dea-6cb275b4e373.png)
+
+### Encrypted output:
+![encrypted files](https://user-images.githubusercontent.com/77390780/107493503-8a76ff00-6b42-11eb-98bf-bede1801ab93.png)
