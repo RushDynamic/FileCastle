@@ -13,6 +13,9 @@ using System.Windows.Forms;
 
 namespace FileCastle
 {
+    // TODO: Add loading texts (like Discord)
+    // TODO: Add custom fonts
+
     public partial class frmMain : Form
     {
         FileCastleService fileCastleService;
@@ -52,15 +55,12 @@ namespace FileCastle
             progressBar.Visible = true;
             try
             {
+                fileCastleService.FileProcessed += FileCastleService_FileProcessed;
                 var progress = new Progress<int>(percent =>
                 {
                     progressBar.Value = percent;
                 });
                 await Task.Run(() => fileCastleService.ProcessFiles(progress, _filesToConsider, _key, _actionInfo));
-                foreach (var file in _filesToConsider)
-                {
-                    lbMain.Items.Remove(file);
-                }
             }
             catch (Exception ex)
             {
@@ -69,6 +69,22 @@ namespace FileCastle
             finally
             {
                 btnMain.Enabled = true;
+                AllowDrop = true;
+            }
+        }
+
+        private void FileCastleService_FileProcessed(object sender, string fileName)
+        {
+            if (lbMain.InvokeRequired)
+            {
+                this.Invoke(new MethodInvoker(delegate()
+                {
+                    lbMain.Items.Remove(fileName);
+                }));
+            }
+            else
+            {
+                lbMain.Items.Remove(fileName);
             }
         }
 
@@ -76,6 +92,8 @@ namespace FileCastle
         private void BtnMain_Click(object sender, EventArgs e)
         {
             btnMain.Enabled = false;
+            AllowDrop = false;
+            //lblDropFilesHeading.Text = FileCastleConstants.LABEL_HEADING_WORKING;
             fileCastleService = new FileCastleService();
             if (lbMain.Items.Count > 0)
             {

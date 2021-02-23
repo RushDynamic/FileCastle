@@ -23,6 +23,9 @@ namespace FileCastle.service
         // TODO: Add comments for readability
         // TODO: Use LINQ wherever possible
 
+        public delegate void FileProcessedEventHandler(object sender, string fileName);
+        public event FileProcessedEventHandler FileProcessed;
+
         #region "File Extension Verification"
         public Tuple<Enums.Actions, long> VerifyAllFiles(List<string> _filesToConsider)
         {
@@ -82,6 +85,7 @@ namespace FileCastle.service
                 else
                     DecryptFile(fileName, _key, totalFileBytes, ref totalProcessedBytes, ref _progress);
 
+                OnFileProcessed(fileName);
             }
 
             // After all the files have been processed, reset the progressbar value to 0.
@@ -124,7 +128,7 @@ namespace FileCastle.service
                 byte[] fileNameBytes = ASCIIEncoding.ASCII.GetBytes(curFile.Name);
                 byte[] encryptedFileNameBytes = AES.Encrypt(fileNameBytes, _key);
 
-                /* 
+                /*
                  * encryptedFileNameLengthBytes is used for storing the length of the AES encrypted file name
                  * Maximum file path length for windows is 260 characters. i.e: the length can be safely stored using 3 (FILE_NAME_LENGTH_CHUNK_SIZE) bytes
                  */
@@ -184,7 +188,7 @@ namespace FileCastle.service
                 }
 
                 //MessageBox.Show("Encryption done");
-                
+
                 fsWrite.Close(); fsRead.Close(); bsRead.Close();
 
                 // Delete original file only after writing encrypted file to disk
@@ -283,5 +287,10 @@ namespace FileCastle.service
             }
         }
         #endregion
+
+        protected virtual void OnFileProcessed(string _fileName)
+        {
+            FileProcessed?.Invoke(this, _fileName);
+        }
     }
 }
