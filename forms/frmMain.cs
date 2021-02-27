@@ -13,10 +13,13 @@ using System.Windows.Forms;
 
 namespace FileCastle
 {
+    // TODO: Add loading texts (like Discord)
+    // TODO: Add custom fonts
+
     public partial class frmMain : Form
     {
         FileCastleService fileCastleService;
-        
+
         public frmMain()
         {
             InitializeComponent();
@@ -40,36 +43,57 @@ namespace FileCastle
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             foreach (string file in files)
             {
-                if (!lbMain.Items.Contains(file)) {
+                if (!lbMain.Items.Contains(file))
+                {
                     lbMain.Items.Add(file);
                 }
             }
         }
         #endregion
-        private async void ProcessFiles(List<string> _filesToConsider, string _key, Enums.Actions _ACTION)
+        private async void ProcessFiles(List<string> _filesToConsider, string _key, Tuple<Enums.Actions, long> _actionInfo)
         {
             progressBar.Visible = true;
             try
             {
+                fileCastleService.FileProcessed += FileCastleService_FileProcessed;
                 var progress = new Progress<int>(percent =>
                 {
                     progressBar.Value = percent;
                 });
-                await Task.Run(() => fileCastleService.ProcessFiles(progress, _filesToConsider, _key, _ACTION));
-                foreach(var file in _filesToConsider)
-                {
-                    lbMain.Items.Remove(file);
-                }
-                MessageBox.Show("{0} successful!", _ACTION.ToString());
+                await Task.Run(() => fileCastleService.ProcessFiles(progress, _filesToConsider, _key, _actionInfo));
             }
             catch (Exception ex)
             {
                 MessageBox.Show(String.Format("An error has occured: {0}", ex.Message), "Error");
             }
+            finally
+            {
+                btnMain.Enabled = true;
+                AllowDrop = true;
+            }
         }
 
+        private void FileCastleService_FileProcessed(object sender, string fileName)
+        {
+            if (lbMain.InvokeRequired)
+            {
+                this.Invoke(new MethodInvoker(delegate()
+                {
+                    lbMain.Items.Remove(fileName);
+                }));
+            }
+            else
+            {
+                lbMain.Items.Remove(fileName);
+            }
+        }
+
+        #region "UI Components"
         private void BtnMain_Click(object sender, EventArgs e)
         {
+            btnMain.Enabled = false;
+            AllowDrop = false;
+            //lblDropFilesHeading.Text = FileCastleConstants.LABEL_HEADING_WORKING;
             fileCastleService = new FileCastleService();
             if (lbMain.Items.Count > 0)
             {
@@ -97,5 +121,27 @@ namespace FileCastle
                 MessageBox.Show("Please add some files/directories first.");
             }
         }
+
+        private void btnPassword_Click(object sender, EventArgs e)
+        {
+            txtKey.UseSystemPasswordChar = !txtKey.UseSystemPasswordChar;
+        }
+
+        private void removeSelectedToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            while (lbMain.SelectedItems.Count > 0)
+            {
+                lbMain.Items.Remove(lbMain.SelectedItems[0]);
+            }
+        }
+
+        private void removeAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (DialogResult.OK == MessageBox.Show("Remove all imported files?", "FileCastle", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation))
+            {
+                lbMain.Items.Clear();
+            }
+        }
+        #endregion
     }
 }

@@ -16,8 +16,13 @@ namespace FileCastle.helper
                 byte[] buffer = new byte[32];
                 crypto.GetNonZeroBytes(buffer);
                 string rawGeneratedName = String.Format("{0}{1}",Convert.ToBase64String(buffer), FileCastleConstants.ENCRYPTED_EXTENSION);
-                return String.Concat(rawGeneratedName.Where(c => !System.IO.Path.GetInvalidFileNameChars().Contains(c)));
+                return CleanFileName(rawGeneratedName);
             }
+        }
+
+        public static string CleanFileName(string fileName)
+        {
+            return String.Concat(fileName.Where(c => !System.IO.Path.GetInvalidFileNameChars().Contains(c)));
         }
     }
 }

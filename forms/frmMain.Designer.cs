@@ -30,21 +30,14 @@
         {
             this.components = new System.ComponentModel.Container();
             this.notifyInfo = new System.Windows.Forms.NotifyIcon(this.components);
-            this.allToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.selectedToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.decryptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.allToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.selectedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.encryptToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.allToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
-            this.selectedToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
-            this.removeItemToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuMain = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.removeSelectedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.removeAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.btnPassword = new System.Windows.Forms.Button();
             this.progressBar = new System.Windows.Forms.ProgressBar();
             this.btnMain = new System.Windows.Forms.Button();
-            this.label3 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
+            this.lblFileCastleHeading = new System.Windows.Forms.Label();
+            this.lblDropFilesHeading = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.txtKey = new System.Windows.Forms.TextBox();
             this.lbMain = new System.Windows.Forms.ListBox();
@@ -56,77 +49,27 @@
             this.notifyInfo.Text = "notifyIcon1";
             this.notifyInfo.Visible = true;
             // 
-            // allToolStripMenuItem1
-            // 
-            this.allToolStripMenuItem1.Name = "allToolStripMenuItem1";
-            this.allToolStripMenuItem1.Size = new System.Drawing.Size(118, 22);
-            this.allToolStripMenuItem1.Text = "All";
-            // 
-            // selectedToolStripMenuItem1
-            // 
-            this.selectedToolStripMenuItem1.Name = "selectedToolStripMenuItem1";
-            this.selectedToolStripMenuItem1.Size = new System.Drawing.Size(118, 22);
-            this.selectedToolStripMenuItem1.Text = "Selected";
-            // 
-            // decryptToolStripMenuItem
-            // 
-            this.decryptToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.selectedToolStripMenuItem1,
-            this.allToolStripMenuItem1});
-            this.decryptToolStripMenuItem.Name = "decryptToolStripMenuItem";
-            this.decryptToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
-            this.decryptToolStripMenuItem.Text = "Decrypt";
-            // 
-            // allToolStripMenuItem
-            // 
-            this.allToolStripMenuItem.Name = "allToolStripMenuItem";
-            this.allToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
-            this.allToolStripMenuItem.Text = "All";
-            // 
-            // selectedToolStripMenuItem
-            // 
-            this.selectedToolStripMenuItem.Name = "selectedToolStripMenuItem";
-            this.selectedToolStripMenuItem.Size = new System.Drawing.Size(118, 22);
-            this.selectedToolStripMenuItem.Text = "Selected";
-            // 
-            // encryptToolStripMenuItem
-            // 
-            this.encryptToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.selectedToolStripMenuItem,
-            this.allToolStripMenuItem});
-            this.encryptToolStripMenuItem.Name = "encryptToolStripMenuItem";
-            this.encryptToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
-            this.encryptToolStripMenuItem.Text = "Encrypt";
-            // 
-            // allToolStripMenuItem2
-            // 
-            this.allToolStripMenuItem2.Name = "allToolStripMenuItem2";
-            this.allToolStripMenuItem2.Size = new System.Drawing.Size(118, 22);
-            this.allToolStripMenuItem2.Text = "All";
-            // 
-            // selectedToolStripMenuItem2
-            // 
-            this.selectedToolStripMenuItem2.Name = "selectedToolStripMenuItem2";
-            this.selectedToolStripMenuItem2.Size = new System.Drawing.Size(118, 22);
-            this.selectedToolStripMenuItem2.Text = "Selected";
-            // 
-            // removeItemToolStripMenuItem
-            // 
-            this.removeItemToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.selectedToolStripMenuItem2,
-            this.allToolStripMenuItem2});
-            this.removeItemToolStripMenuItem.Name = "removeItemToolStripMenuItem";
-            this.removeItemToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
-            this.removeItemToolStripMenuItem.Text = "Remove";
-            // 
             // menuMain
             // 
             this.menuMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.removeItemToolStripMenuItem,
-            this.encryptToolStripMenuItem,
-            this.decryptToolStripMenuItem});
+            this.removeSelectedToolStripMenuItem,
+            this.removeAllToolStripMenuItem});
             this.menuMain.Name = "menuMain";
-            this.menuMain.Size = new System.Drawing.Size(118, 70);
+            this.menuMain.Size = new System.Drawing.Size(165, 48);
+            // 
+            // removeSelectedToolStripMenuItem
+            // 
+            this.removeSelectedToolStripMenuItem.Name = "removeSelectedToolStripMenuItem";
+            this.removeSelectedToolStripMenuItem.Size = new System.Drawing.Size(164, 22);
+            this.removeSelectedToolStripMenuItem.Text = "Remove Selected";
+            this.removeSelectedToolStripMenuItem.Click += new System.EventHandler(this.removeSelectedToolStripMenuItem_Click);
+            // 
+            // removeAllToolStripMenuItem
+            // 
+            this.removeAllToolStripMenuItem.Name = "removeAllToolStripMenuItem";
+            this.removeAllToolStripMenuItem.Size = new System.Drawing.Size(164, 22);
+            this.removeAllToolStripMenuItem.Text = "Remove All";
+            this.removeAllToolStripMenuItem.Click += new System.EventHandler(this.removeAllToolStripMenuItem_Click);
             // 
             // btnPassword
             // 
@@ -142,6 +85,7 @@
             this.btnPassword.Text = "*";
             this.btnPassword.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.btnPassword.UseVisualStyleBackColor = true;
+            this.btnPassword.Click += new System.EventHandler(this.btnPassword_Click);
             // 
             // progressBar
             // 
@@ -168,26 +112,26 @@
             this.btnMain.UseVisualStyleBackColor = true;
             this.btnMain.Click += new System.EventHandler(this.BtnMain_Click);
             // 
-            // label3
+            // lblFileCastleHeading
             // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.ForeColor = System.Drawing.SystemColors.ControlDark;
-            this.label3.Location = new System.Drawing.Point(54, 15);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(97, 25);
-            this.label3.TabIndex = 17;
-            this.label3.Text = "File Castle";
+            this.lblFileCastleHeading.AutoSize = true;
+            this.lblFileCastleHeading.Font = new System.Drawing.Font("Segoe UI", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblFileCastleHeading.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.lblFileCastleHeading.Location = new System.Drawing.Point(54, 15);
+            this.lblFileCastleHeading.Name = "lblFileCastleHeading";
+            this.lblFileCastleHeading.Size = new System.Drawing.Size(97, 25);
+            this.lblFileCastleHeading.TabIndex = 17;
+            this.lblFileCastleHeading.Text = "File Castle";
             // 
-            // label2
+            // lblDropFilesHeading
             // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Segoe UI Semibold", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(49, 30);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(486, 50);
-            this.label2.TabIndex = 16;
-            this.label2.Text = "DROP FILES/FOLDERS HERE";
+            this.lblDropFilesHeading.AutoSize = true;
+            this.lblDropFilesHeading.Font = new System.Drawing.Font("Segoe UI Semibold", 27.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblDropFilesHeading.Location = new System.Drawing.Point(49, 30);
+            this.lblDropFilesHeading.Name = "lblDropFilesHeading";
+            this.lblDropFilesHeading.Size = new System.Drawing.Size(486, 50);
+            this.lblDropFilesHeading.TabIndex = 16;
+            this.lblDropFilesHeading.Text = "DROP FILES/FOLDERS HERE";
             // 
             // label1
             // 
@@ -233,8 +177,8 @@
             this.Controls.Add(this.btnPassword);
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.btnMain);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.label2);
+            this.Controls.Add(this.lblFileCastleHeading);
+            this.Controls.Add(this.lblDropFilesHeading);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.txtKey);
             this.Controls.Add(this.lbMain);
@@ -254,24 +198,17 @@
         #endregion
 
         private System.Windows.Forms.NotifyIcon notifyInfo;
-        private System.Windows.Forms.ToolStripMenuItem allToolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem selectedToolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem decryptToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem allToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem selectedToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem encryptToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem allToolStripMenuItem2;
-        private System.Windows.Forms.ToolStripMenuItem selectedToolStripMenuItem2;
-        private System.Windows.Forms.ToolStripMenuItem removeItemToolStripMenuItem;
         private System.Windows.Forms.ContextMenuStrip menuMain;
         private System.Windows.Forms.Button btnPassword;
         private System.Windows.Forms.ProgressBar progressBar;
         private System.Windows.Forms.Button btnMain;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label lblFileCastleHeading;
+        private System.Windows.Forms.Label lblDropFilesHeading;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtKey;
         private System.Windows.Forms.ListBox lbMain;
+        private System.Windows.Forms.ToolStripMenuItem removeSelectedToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem removeAllToolStripMenuItem;
     }
 }
 
