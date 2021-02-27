@@ -115,7 +115,7 @@ namespace FileCastle.service
 
                 // Write the original (encrypted) directory name into the fcMeta file
                 File.WriteAllText(Path.Combine(dir.FullName, FC_META_INFO),
-                    Convert.ToBase64String(AES.Encrypt(ASCIIEncoding.ASCII.GetBytes(_fileName), _key)));
+                    Convert.ToBase64String(AES.Encrypt(ASCIIEncoding.ASCII.GetBytes(dir.Name), _key)));
                 dir.MoveTo(Path.Combine(dir.Parent.FullName, newDirName));
             }
             else
