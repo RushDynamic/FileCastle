@@ -243,7 +243,7 @@ namespace FileCastle.service
                     // Start copying from position {3} to skip the filename length
                     System.Buffer.BlockCopy(encBuffer, FILE_NAME_LENGTH_CHUNK_SIZE, encryptedFileNameBytes, 0, fileNameLength);
                     byte[] decryptedFileNameBytes = AES.Decrypt(encryptedFileNameBytes, key);
-                    string rawFileName = ASCIIEncoding.ASCII.GetString(decryptedFileNameBytes);
+                    string rawFileName = FileCastleUtil.CleanFileName(ASCIIEncoding.ASCII.GetString(decryptedFileNameBytes));
                     FileStream fsWrite = new FileStream(curFile.FullName.Replace(curFile.Name, rawFileName), FileMode.Append, FileAccess.Write);
 
                     // Initialize totalBytesWritten as BUFFER_SIZE_STANDARD (8192) to account for the first chunk (fileName chunk)
